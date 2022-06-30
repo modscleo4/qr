@@ -3465,11 +3465,7 @@ function qrCode(data, ecc, { forceUTF8 = false, version = 0 } = {}) {
     return {data: interleavedData.map(c => c.toString(2).padStart(8, '0')).join('').concat('0'.repeat(remainderBits)), version, ecc, mode: mode === 'utf8' ? 'byte' : mode};
 }
 
-async function drawQRCode(qr, awaitSteps = true) {
-    /** @type {HTMLCanvasElement} */
-    const canvas = document.querySelector('#qr');
-    const ctx = canvas.getContext('2d');
-
+async function drawQRCode(qr, drawQR = buffer => {}, awaitSteps = true, { onMask = mask => {}, onWriteData = (i, j) => {} } = {}) {
     const size = ((qr.version - 1) * 4) + 21;
 
     /** @type {boolean[][]} */
@@ -3487,19 +3483,6 @@ async function drawQRCode(qr, awaitSteps = true) {
             dataBits[i][j] = true;
             buffer[i][j] = false;
         }
-    }
-
-    function scale(factor) {
-        // Set up CSS size.
-        //canvas.style.width = canvas.style.width || canvas.width + 'px';
-        //canvas.style.height = canvas.style.height || canvas.height + 'px';
-
-        canvas.style.padding = (4 * factor) + 'px';
-
-        ctx.canvas.width = size * factor;
-        ctx.canvas.height = size * factor;
-
-        ctx.scale(factor, factor);
     }
 
     function fill(x, y, w, h, set = true) {
@@ -3606,11 +3589,6 @@ async function drawQRCode(qr, awaitSteps = true) {
         clear(x, y, w, h);
     }
 
-    /*function colorAt(x, y) {
-        const pixel = ctx.getImageData(4 * x, 4 * y, 1, 1).data;
-        return '#' + (pixel[0]).toString(16).padStart(2, '0') + (pixel[1]).toString(16).padStart(2, '0') + (pixel[2]).toString(16).padStart(2, '0') + (pixel[3]).toString(16).padStart(2, '0');
-    }*/
-
     function canApplyMask(mask, row, column) {
         switch (mask) {
             case 0:
@@ -3704,7 +3682,7 @@ async function drawQRCode(qr, awaitSteps = true) {
     function evaluatePenalty3() {
         // The third rule gives the QR code a large penalty if there are patterns that look similar to the finder patterns.
         // The third penalty rule looks for patterns of dark-light-dark-dark-dark-light-dark that have four light modules on either side
-        const pattern = [1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0];
+        const pattern = [true, false, true, true, true, false, true, false, false, false, false];
 
         let penalty = 0;
         for (let i = 0; i < size; i++) {
@@ -3714,9 +3692,9 @@ async function drawQRCode(qr, awaitSteps = true) {
                     bufferPattern.push(buffer[i][j + k]);
                 }
 
-                if (bufferPattern.every((value, index) => value == pattern[index])) {
+                if (bufferPattern.every((value, index) => value === pattern[index])) {
                     penalty += 40;
-                } else if (bufferPattern.every((value, index) => value == pattern[10 - index])) {
+                } else if (bufferPattern.every((value, index) => value === pattern[10 - index])) {
                     penalty += 40;
                 }
             }
@@ -3729,9 +3707,9 @@ async function drawQRCode(qr, awaitSteps = true) {
                     bufferPattern.push(buffer[i + k][j]);
                 }
 
-                if (bufferPattern.every((value, index) => value == pattern[index])) {
+                if (bufferPattern.every((value, index) => value === pattern[index])) {
                     penalty += 40;
-                } else if (bufferPattern.every((value, index) => value == pattern[10 - index])) {
+                } else if (bufferPattern.every((value, index) => value === pattern[10 - index])) {
                     penalty += 40;
                 }
             }
@@ -3759,7 +3737,9 @@ async function drawQRCode(qr, awaitSteps = true) {
         return Math.min(Math.abs(50 - nextMultiple5) / 5, Math.abs(50 - previousMultiple5) / 5) * 10;
     }
 
-    function applyMask(mask) {
+    function applyMask(mask, disable = false) {
+        const formatString = disable ? '000000000000000' : generateFormatString(qr.ecc, mask);
+
         for (let i = 0; i < size; i++) {
             for (let j = 0; j < size; j++) {
                 if (canApplyMask(mask, j, i)) {
@@ -3767,6 +3747,8 @@ async function drawQRCode(qr, awaitSteps = true) {
                 }
             }
         }
+
+        drawFormatString(formatString);
     }
 
     function drawFormatString(formatString) {
@@ -3867,10 +3849,9 @@ async function drawQRCode(qr, awaitSteps = true) {
             }
 
             if (awaitSteps) {
-                drawQR();
+                drawQR(buffer);
 
-                ctx.fillStyle = 'red';
-                ctx.fillRect(x, y, 1, 1);
+                onWriteData(x, y);
 
                 await sleep(5);
             }
@@ -3881,35 +3862,12 @@ async function drawQRCode(qr, awaitSteps = true) {
         }
     }
 
-    function drawQR() {
-        ctx.imageSmoothingEnabled = false;
-        //ctx.translate(0.5, 0.5);
-        ctx.clearRect(0, 0, size, size);
-
-        for (let i = 0; i < buffer.length; i++) {
-            for (let j = 0; j < buffer[i].length; j++) {
-                if (buffer[i][j]) {
-                    ctx.fillStyle = 'black';
-                } else {
-                    ctx.fillStyle = 'white';
-                }
-
-                ctx.fillRect(i, j, 1, 1);
-            }
-        }
-    }
-
     async function calculateBestMask() {
         let bestPenalty = Infinity;
         let bestMask = 2;
         for (let mask = 0; mask <= 7; mask++) {
             console.log('Applying mask ' + mask);
             applyMask(mask);
-
-            const formatString = generateFormatString(qr.ecc, mask);
-            console.log('Format string: ' + formatString);
-
-            drawFormatString(formatString);
 
             const penalty1 = evaluatePenalty1();
             const penalty2 = evaluatePenalty2();
@@ -3923,29 +3881,23 @@ async function drawQRCode(qr, awaitSteps = true) {
             }
 
             if (awaitSteps) {
-                drawQR();
+                drawQR(buffer);
+
+                onMask(mask, penalty);
 
                 await sleep(500);
             }
 
-            applyMask(mask);
-            drawFormatString('000000000000000');
+            applyMask(mask, true);
 
             if (awaitSteps) {
-                drawQR();
+                drawQR(buffer);
 
                 await sleep(250);
             }
         }
 
-        console.log('Best mask: ' + bestMask);
-        applyMask(bestMask);
-
-        const formatString = generateFormatString(qr.ecc, bestMask);
-        console.log('Format string: ' + formatString);
-
-        drawFormatString(formatString);
-        drawQR();
+        return bestMask;
     }
 
     /**
@@ -3955,8 +3907,6 @@ async function drawQRCode(qr, awaitSteps = true) {
     async function sleep(ms) {
         return await new Promise((resolve, reject) => setTimeout(() => resolve(true), ms));
     }
-
-    scale(qr.version < 4 ? 8 : qr.version < 8 ? 6 : 4);
 
     finderPattern(0, 0);
     finderPattern(size - 7, 0);
@@ -3973,7 +3923,7 @@ async function drawQRCode(qr, awaitSteps = true) {
     }
 
     if (awaitSteps) {
-        drawQR();
+        drawQR(buffer);
 
         await sleep(100);
     }
@@ -4001,7 +3951,7 @@ async function drawQRCode(qr, awaitSteps = true) {
             alignPattern(align[i], align[j]);
 
             if (awaitSteps) {
-                drawQR();
+                drawQR(buffer);
 
                 await sleep(25);
             }
@@ -4011,7 +3961,7 @@ async function drawQRCode(qr, awaitSteps = true) {
     timingPatterns(size);
 
     if (awaitSteps) {
-        drawQR();
+        drawQR(buffer);
 
         await sleep(100);
     }
@@ -4019,7 +3969,7 @@ async function drawQRCode(qr, awaitSteps = true) {
     darkModule(qr.version);
 
     if (awaitSteps) {
-        drawQR();
+        drawQR(buffer);
 
         await sleep(100);
     }
@@ -4027,14 +3977,28 @@ async function drawQRCode(qr, awaitSteps = true) {
     version(qr.version);
 
     if (awaitSteps) {
-        drawQR();
+        drawQR(buffer);
 
         await sleep(100);
     }
 
     await drawData(qr.data);
 
-    await calculateBestMask();
+    const mask = await calculateBestMask();
 
-    return qr;
+    console.log('Best mask: ' + mask);
+    applyMask(mask);
+
+    return {
+        qr,
+        mask,
+        buffer,
+        applyMask: (_mask, disable) => {
+            if (_mask === -1) {
+                _mask = mask;
+            }
+
+            applyMask(_mask);
+        },
+    };
 }

@@ -338,9 +338,33 @@ header .sidebar-button button:hover {
     flex-wrap: wrap;
 }
 
-#qr {
+.result {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    align-items: start;
+}
+
+.qr {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.qr-container {
+    --scale: 1;
+    --size: 21;
     border: 1px solid #000000;
     background-color: #ffffff;
+    box-sizing: content-box;
+    padding: calc(var(--scale) * 4px);
+    width: calc((var(--scale)) * var(--size) * 1px);
+    height: calc((var(--scale)) * var(--size) * 1px);
+}
+
+#qr {
     image-rendering: pixelated;
-    justify-self: center;
+    /* width: calc(var(--scale) * 100%); */
+    width: 100%;
 }

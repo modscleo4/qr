@@ -2,6 +2,11 @@
 
 import * as Vue from 'https://cdnjs.cloudflare.com/ajax/libs/vue/3.0.5/vue.esm-browser.prod.js';
 
+/** @type {HTMLCanvasElement} */
+let canvas;
+let canvas_container;
+let ctx;
+
 const app = Vue.createApp({
     data: () => ({
         modal: null,
@@ -10,6 +15,9 @@ const app = Vue.createApp({
         data: '',
         ecc: 'L',
         qr: null,
+        qrCanvas: null,
+        mask: -1,
+        zoom: 1,
         stepByStep: false,
         forceUTF8: true,
 
@@ -40,6 +48,10 @@ const app = Vue.createApp({
         this.modalEl.addEventListener('hidden.bs.modal', () => {
             this.modal = null;
         });
+
+        canvas = document.querySelector('#qr');
+        canvas_container = canvas.parentElement;
+        ctx = canvas.getContext('2d');
     },
 
     computed: {
@@ -99,15 +111,77 @@ const app = Vue.createApp({
 
         async generateQRCode() {
             this.generating = true;
+            this.qr = null;
+            this.mask = -1;
+
             try {
                 this.qr = qrCode(this.data, this.ecc, { forceUTF8: this.forceUTF8 });
-                await drawQRCode(this.qr, this.stepByStep).then(() => {
-                    this.generating = false;
-                });
+                this.scaleCanvas();
+                this.qrCanvas = await drawQRCode(this.qr, this.drawQR, this.stepByStep, { onMask: mask => this.mask = mask, onWriteData: (i, j) => { ctx.fillStyle = 'red'; ctx.fillRect(i, j, 1, 1); } });
+                this.drawQR(this.qrCanvas.buffer);
+                this.mask = this.qrCanvas.mask;
+                this.generating = false;
             } catch (err) {
                 this.qr = null;
+                this.qrCanvas = null;
+                this.mask = -1;
                 this.generating = false;
                 this.alert(err.message, 'Erro inesperado');
+            }
+        },
+
+        scaleCanvas(cssScale = -1) {
+            const factor = 1;
+
+            const size = ((this.qr.version - 1) * 4) + 21;
+
+            this.zoom = cssScale;
+
+            // Set up CSS size.
+            if (cssScale === -1) {
+                cssScale = Math.ceil(475 / (size + 4 * factor));
+            }
+
+            canvas_container.style.setProperty('--scale', '' + cssScale);
+            canvas_container.style.setProperty('--size', '' + size * factor);
+        },
+
+        async applyMask(mask) {
+            if (this.qrCanvas === null) {
+                return;
+            }
+
+            this.qrCanvas.applyMask(this.mask, true);
+            this.qrCanvas.applyMask(mask);
+            this.drawQR(this.qrCanvas.buffer);
+
+            this.mask = mask;
+        },
+
+        /**
+         *
+         * @param {number[][]} buffer
+         */
+        drawQR(buffer) {
+            const size = ((this.qr.version - 1) * 4) + 21;
+
+            canvas.width = size;
+            canvas.height = size;
+            ctx.scale(1, 1);
+            ctx.imageSmoothingEnabled = false;
+            ctx.translate(0.5, 0.5);
+            ctx.clearRect(0, 0, size, size);
+
+            for (let i = 0; i < buffer.length; i++) {
+                for (let j = 0; j < buffer[i].length; j++) {
+                    if (buffer[i][j]) {
+                        ctx.fillStyle = 'black';
+                    } else {
+                        ctx.fillStyle = 'white';
+                    }
+
+                    ctx.fillRect(i, j, 1, 1);
+                }
             }
         },
 
