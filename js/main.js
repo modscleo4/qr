@@ -165,11 +165,10 @@ const app = Vue.createApp({
         drawQR(buffer) {
             const size = ((this.qr.version - 1) * 4) + 21;
 
-            canvas.width = size;
-            canvas.height = size;
-            ctx.scale(1, 1);
+            canvas.width = size * 2;
+            canvas.height = size * 2;
+            ctx.scale(2, 2);
             ctx.imageSmoothingEnabled = false;
-            ctx.translate(0.5, 0.5);
             ctx.clearRect(0, 0, size, size);
 
             for (let i = 0; i < buffer.length; i++) {
