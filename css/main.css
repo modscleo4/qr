@@ -1,0 +1,324 @@
+@import url('https://fonts.googleapis.com/css2?family=Raleway&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300&display=swap');
+
+:root {
+    --app-max-width: 1300px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+    font-family: 'Raleway', sans-serif;
+    font-size: 14pt;
+    background: var(--background-color);
+    margin: 0;
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+    color: var(--text-color);
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-button {
+    width: 0;
+    height: 0;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border: none;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+}
+
+::-webkit-scrollbar-thumb:active {
+    background-color: var(--scrollbar-thumb-active);
+}
+
+::-webkit-scrollbar-track {
+    background-color: var(--scrollbar-track);
+    border: none;
+}
+
+::-webkit-scrollbar-corner {
+    background-color: transparent;
+}
+
+a {
+    color: var(--link-color);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--link-color-hover);
+    text-decoration: underline;
+}
+
+.alt-bg {
+    color: var(--text-color-alt);
+}
+
+.alt-bg a {
+    color: var(--link-color-alt);
+}
+
+.alt-bg a:hover {
+    color: var(--link-color-hover-alt) !important;
+}
+
+.select2 {
+    width: 100% !important;
+}
+
+.select2-container--default .select2-selection--multiple,
+.select2-dropdown {
+    background-color: var(--input-background-color);
+    border-color: var(--input-border-color);
+    color: var(--text-color);
+}
+
+.select2-container--default .select2-results__option[aria-selected=true] {
+    background-color: var(--even);
+    color: var(--text-color);
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #5897fb;
+}
+
+.select2-container--default .select2-search--inline .select2-search__field {
+    color: var(--text-color);
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: var(--even);
+    border-color: var(--input-border-color);
+    color: var(--text-color);
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+    color: var(--text-color-hover);
+}
+
+#particles-js {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%) no-repeat 50% 50%;
+    /*filter: blur(1px);*/
+}
+
+#app {
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    position: relative;
+}
+
+.sidebar {
+    position: fixed;
+    left: 0;
+    height: 100%;
+    width: 0;
+    z-index: 1000;
+    background: none;
+    transition: width 100ms;
+}
+
+.sidebar.sidebar-right {
+    left: unset;
+    right: 0;
+}
+
+.sidebar.center {
+    right: -50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.sidebar.center.open {
+    right: 0;
+}
+
+.sidebar.open {
+    width: 100%;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar ul li {
+    margin: 0;
+    padding: 16px;
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto;
+    grid-template-rows: min-content;
+    align-items: center;
+    font-family: 'Oswald', sans-serif;
+}
+
+.sidebar-backdrop {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 950;
+    background-color: rgba(0, 0, 0, 0.4);
+    /*backdrop-filter: blur(2px);*/
+}
+
+.sidebar a {
+    transition: all 100ms;
+}
+
+.sidebar a.active {
+    color: var(--body-color-alt);
+}
+
+header {
+    width: 100%;
+    font-family: 'Oswald', sans-serif;
+    font-size: 14pt;
+    padding: 16px 0;
+    position: fixed;
+    background: var(--background-color);
+    z-index: 1000;
+    color: var(--text-color);
+    transition: all 100ms;
+    display: flex;
+    justify-content: center;
+}
+
+header.alt-bg {
+    background: none;
+    color: var(--text-color-alt);
+}
+
+header .links-container {
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: space-between;
+}
+
+header .links,
+header .links .sublinks,
+header .sidebar-button {
+    width: max-content;
+    display: inline-flex;
+    padding: 0;
+    list-style: none;
+    gap: 12px;
+}
+
+header .links .sublinks {
+    background-color: var(--card-color);
+    border-radius: 50px;
+    max-width: 0;
+    height: min-content;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: all 100ms;
+}
+
+header .links .sublinks.visible {
+    max-width: 1000px;
+    margin-left: 6px;
+    padding: 0 4px;
+}
+
+header .links li,
+header .links .sublinks li {
+    display: inline-flex;
+    justify-content: flex-start;
+    width: min-content;
+    /* gap: 12px; */
+}
+
+header a {
+    transition: all 100ms;
+}
+
+header a:hover {
+    color: var(--text-color-hover-alt);
+}
+
+header a.active {
+    color: var(--text-color-active);
+}
+
+header.content a:hover {
+    color: var(--text-color-hover);
+}
+
+header.content a.active {
+    color: var(--body-color);
+}
+
+header .sidebar-button {
+    float: right;
+    display: none;
+}
+
+header .sidebar-button button {
+    color: var(--link-color);
+}
+
+header .sidebar-button button:hover {
+    color: var(--link-color-hover);
+}
+
+header.alt-bg .sidebar-button button {
+    color: var(--text-color-alt);
+}
+
+header .sidebar-button button:hover {
+    color: var(--text-color-hover-alt);
+}
+
+#main {
+    visibility: hidden;
+    display: grid;
+    grid-template-columns: minmax(max-content, 1200px);
+    grid-template-rows: auto auto;
+    justify-content: center;
+    padding: 32px 16px;
+    gap: 32px;
+}
+
+#main.loaded {
+    visibility: unset;
+}
+
+#input {
+    width: 100%;
+}
+
+#input .row-buttons {
+    display: flex;
+    justify-content: space-between;
+}
+
+#qr {
+    border: 1px solid #000000;
+    background-color: #ffffff;
+    image-rendering: pixelated;
+    justify-self: center;
+}
