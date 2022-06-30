@@ -64,19 +64,19 @@
         <section id="main" :class="{'loaded': true}">
             <div id="input">
                 <form action="#" @submit.prevent="generateQRCode()">
-                    <div class="mb-2">
+                    <div class="input-data" class="mb-2">
                         <label for="data" class="mb-1">Texto</label>
-                        <textarea style="resize: none" class="form-control" id="data" rows="10" v-model="data"
+                        <textarea style="resize: none" class="form-control" id="data" rows="5" v-model="data"
                                     placeholder="0123456789 ABCDEFGHIJKLMNOPQRSTUVWXYZ áéíóú 漢字 한글"
                                     :maxlength="getMaxLength()"></textarea>
                     </div>
 
-                    <div class="row-buttons">
+                    <div class="mt-2 row-buttons">
                         <div class="options">
                             <button type="submit" class="btn btn-primary" :disabled="!data || getDataSize() > getMaxLength() || generating">Gerar QR Code</button>
 
                             <div class="dropdown" style="display: inline;">
-                                <button class="btn btn-secondary ms-2 dropdown-toggle" type="button" id="dropdownECC"
+                                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownECC"
                                         data-bs-toggle="dropdown" aria-expanded="false">ECC: {{ ecc }}</button>
                                 <ul class="dropdown-menu" aria-labelledby="dropdownECC">
                                     <li><a class="dropdown-item" href="#" @click="ecc = 'L'">Baixo (7%)</a></li>
@@ -86,7 +86,7 @@
                                 </ul>
                             </div>
 
-                            <div class="form-check form-switch mt-1">
+                            <div class="form-check form-switch">
                                 <input type="checkbox" id="stepByStep" class="form-check-input" v-model="stepByStep">
                                 <label for="stepByStep" class="form-check-label">Passo-a-passo</label>
                             </div>
@@ -99,13 +99,12 @@
                         </div>
 
                         <div class="badges" v-if="data">
-                            <button type="submit" class="ms-2 btn btn-secondary" disabled>{{ getMode }}</button>
+                            <button type="submit" class="btn btn-sm btn-secondary" disabled>{{ getMode }}</button>
 
-                            <button type="submit" class="ms-2 btn btn-primary"
+                            <button type="submit" class="btn btn-sm btn-primary"
                                     disabled>{{ getVersion }}</button>
 
-                            <button type="submit" class="ms-2 btn"
-                                    :class="[getDataSize() <= getMaxLength() ? 'btn-light' : 'btn-danger']"
+                            <button type="submit" class="btn btn-sm" :class="[getDataSize() <= getMaxLength() ? 'btn-light' : 'btn-danger']"
                                     disabled>{{ getSize }} / {{ getMaxLength() }}</button>
                         </div>
                     </div>

@@ -296,7 +296,7 @@ header .sidebar-button button:hover {
 #main {
     visibility: hidden;
     display: grid;
-    grid-template-columns: minmax(max-content, 1200px);
+    grid-template-columns: minmax(min-content, 1200px);
     grid-template-rows: auto auto;
     justify-content: center;
     padding: 32px 16px;
@@ -311,9 +311,31 @@ header .sidebar-button button:hover {
     width: 100%;
 }
 
+#input .input-data {
+
+}
+
 #input .row-buttons {
     display: flex;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 24px;
+    align-items: start;
+}
+
+#input .row-buttons .options {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    max-width: 275px;
+}
+
+#input .row-buttons .badges {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
 #qr {
