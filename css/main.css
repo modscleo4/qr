@@ -343,6 +343,7 @@ header .sidebar-button button:hover {
     justify-content: space-between;
     flex-wrap: wrap;
     align-items: start;
+    gap: 12px;
 }
 
 .qr {
@@ -367,4 +368,11 @@ header .sidebar-button button:hover {
     image-rendering: pixelated;
     /* width: calc(var(--scale) * 100%); */
     width: 100%;
+}
+
+@media (max-width: 700px) {
+    .result {
+        flex-direction: row-reverse;
+        justify-content: center;
+    }
 }

@@ -113,17 +113,31 @@
 
             <div class="result" :style="{visibility: !qr ? 'hidden' : 'unset'}">
                 <div style="width: 200px">
-                    <div class="list-group">
-                        <span class="list-group-item" :class="[generating ? 'list-group-item-secondary' : 'list-group-item-primary']">Máscara</span>
-                        <button v-for="i of [0, 1, 2, 3, 4, 5, 6, 7]" type="button" class="list-group-item list-group-item-action" :class="[mask === i ? 'active' : '']" :disabled="generating" @click="applyMask(i)">#{{ i }}</button>
+                    <div class="accordion">
+                        <div class="accordion-item">
+                            <div class="list-group">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button"
+                                        data-bs-toggle="collapse" :class="[matchMedia('(max-width: 700px)') ? 'collapsed' : '']" data-bs-target="#accordionMask" :aria-expanded="!matchMedia('(max-width: 700px)')" aria-controls="accordionMask">Máscara</button>
+                                </h2>
+
+                                <div class="accordion-collapse collapse" :class="[matchMedia('(max-width: 700px)') ? '' : 'show']" id="accordionMask">
+                                    <button v-for="i of [0, 1, 2, 3, 4, 5, 6, 7]" type="button" class="list-group-item list-group-item-action" :class="[mask === i ? 'active' : '']" :disabled="generating" @click="applyMask(i)">#{{ i }}</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="qr">
                     <div class="list-group list-group-horizontal">
                         <span class="list-group-item" :class="[generating ? 'list-group-item-secondary' : 'list-group-item-primary']">Zoom</span>
-                        <button v-for="i of [1, 2, 3, 4, 5, 6, 7, 8, 16]" type="button" class="list-group-item list-group-item-action" :class="[zoom === i ? 'active' : '']" :disabled="generating" @click="scaleCanvas(i)">{{ i }}x</button>
-                        <button type="button" class="list-group-item list-group-item-action" :class="[zoom === -1 ? 'active' : '']" :disabled="generating" @click="scaleCanvas()">Preencher</button>
+                        <!-- <button v-for="i of [1, 2, 3, 4, 5, 6, 7, 8, 16]" type="button" class="list-group-item list-group-item-action" :class="[zoom === i ? 'active' : '']" :disabled="generating" @click="scaleCanvas(i)">{{ i }}x</button> -->
+                        <select class="list-group-item" id="" v-model="zoom" :disabled="generating" @change="scaleCanvas(zoom)">
+                            <option value="-1">Preencher</option>
+                            <option v-for="i of [1, 2, 3, 4, 5, 6, 7, 8, 16]" :value="i">{{ i }}x</option>
+                        </select>
+                        <!-- <button type="button" class="list-group-item list-group-item-action" :class="[zoom === -1 ? 'active' : '']" :disabled="generating" @click="scaleCanvas()">Preencher</button> -->
                     </div>
 
                     <div class="qr-container">

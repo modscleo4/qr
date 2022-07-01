@@ -138,8 +138,8 @@ const app = Vue.createApp({
             this.zoom = cssScale;
 
             // Set up CSS size.
-            if (cssScale === -1) {
-                cssScale = Math.ceil(475 / (size + 4 * factor));
+            if (cssScale == -1) {
+                cssScale = Math.ceil((this.matchMedia('(max-width: 700px)') ? 275 : 475) / (size + 4 * factor));
             }
 
             canvas_container.style.setProperty('--scale', '' + cssScale);
@@ -206,6 +206,10 @@ const app = Vue.createApp({
             [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]:not([data-bs-original-title])')).forEach(el => {
                 new bootstrap.Tooltip(el);
             });
+        },
+
+        matchMedia(query) {
+            return matchMedia(query).matches;
         },
     },
 }).directive('select2', {
