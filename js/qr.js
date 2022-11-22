@@ -3880,10 +3880,10 @@ async function drawQRCode(qr, drawQR = buffer => {}, awaitSteps = true, { onMask
                 bestPenalty = penalty;
             }
 
+            onMask(mask, penalty);
+
             if (awaitSteps) {
                 drawQR(buffer);
-
-                onMask(mask, penalty);
 
                 await sleep(500);
             }

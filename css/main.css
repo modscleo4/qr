@@ -370,6 +370,15 @@ header .sidebar-button button:hover {
     width: 100%;
 }
 
+.mask {
+    display: flex;
+    justify-content: space-between;
+}
+
+.mask .penalty {
+    
+}
+
 @media (max-width: 700px) {
     .result {
         flex-direction: row-reverse;

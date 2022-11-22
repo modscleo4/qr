@@ -122,7 +122,7 @@
                                 </h2>
 
                                 <div class="accordion-collapse collapse" :class="[matchMedia('(max-width: 700px)') ? '' : 'show']" id="accordionMask">
-                                    <button v-for="i of [0, 1, 2, 3, 4, 5, 6, 7]" type="button" class="list-group-item list-group-item-action" :class="[mask === i ? 'active' : '']" :disabled="generating" @click="applyMask(i)">#{{ i }} <span v-if="maskPenalties[i - 1] !== undefined">(maskPenalties[i - 1])</span></button>
+                                    <button v-for="i of [0, 1, 2, 3, 4, 5, 6, 7]" type="button" class="list-group-item list-group-item-action mask" :class="[mask === i ? 'active' : '']" :disabled="generating" @click="applyMask(i)">#{{ i }} <span v-if="maskPenalties[i - 1] !== undefined" class="penalty">({{ maskPenalties[i - 1] }})</span></button>
                                 </div>
                             </div>
                         </div>

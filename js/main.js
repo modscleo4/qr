@@ -17,7 +17,7 @@ const app = Vue.createApp({
         qr: null,
         qrCanvas: null,
         mask: -1,
-        maskPenalties = [],
+        maskPenalties: [],
         zoom: 1,
         stepByStep: false,
         forceUTF8: true,
