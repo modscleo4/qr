@@ -17,6 +17,7 @@ const app = Vue.createApp({
         qr: null,
         qrCanvas: null,
         mask: -1,
+        maskPenalties = [],
         zoom: 1,
         stepByStep: false,
         forceUTF8: true,
@@ -115,9 +116,10 @@ const app = Vue.createApp({
             this.mask = -1;
 
             try {
+                this.maskPenalties = [];
                 this.qr = qrCode(this.data, this.ecc, { forceUTF8: this.forceUTF8 });
                 this.scaleCanvas();
-                this.qrCanvas = await drawQRCode(this.qr, this.drawQR, this.stepByStep, { onMask: mask => this.mask = mask, onWriteData: (i, j) => { ctx.fillStyle = 'red'; ctx.fillRect(i, j, 1, 1); } });
+                this.qrCanvas = await drawQRCode(this.qr, this.drawQR, this.stepByStep, { onMask: (mask, penalty) => { this.mask = mask; this.maskPenalties[mask] = penalty }, onWriteData: (i, j) => { ctx.fillStyle = 'red'; ctx.fillRect(i, j, 1, 1); } });
                 this.drawQR(this.qrCanvas.buffer);
                 this.mask = this.qrCanvas.mask;
                 this.generating = false;

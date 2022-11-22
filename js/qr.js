@@ -2965,7 +2965,7 @@ function dividePolynomial(message, generator, stop = -1) {
 
 function totalDataCodeworks(ecc, version) {
     const eccMap = eccBlocks(ecc, version);
-    return eccMap.blocksGroup1 * eccMap.dataBlocksGroup1 + (eccMap.blocksGroup1 !== null ? eccMap.blocksGroup2 * eccMap.dataBlocksGroup2 : 0);
+    return eccMap.blocksGroup1 * eccMap.dataBlocksGroup1 + (eccMap.blocksGroup2 !== null ? eccMap.blocksGroup2 * eccMap.dataBlocksGroup2 : 0);
 }
 
 function preEncodeData(data, mode) {
@@ -3465,7 +3465,7 @@ function qrCode(data, ecc, { forceUTF8 = false, version = 0 } = {}) {
     return {data: interleavedData.map(c => c.toString(2).padStart(8, '0')).join('').concat('0'.repeat(remainderBits)), version, ecc, mode: mode === 'utf8' ? 'byte' : mode};
 }
 
-async function drawQRCode(qr, drawQR = buffer => {}, awaitSteps = true, { onMask = mask => {}, onWriteData = (i, j) => {} } = {}) {
+async function drawQRCode(qr, drawQR = buffer => {}, awaitSteps = true, { onMask = (mask, penalty) => {}, onWriteData = (i, j) => {} } = {}) {
     const size = ((qr.version - 1) * 4) + 21;
 
     /** @type {boolean[][]} */
@@ -3866,7 +3866,7 @@ async function drawQRCode(qr, drawQR = buffer => {}, awaitSteps = true, { onMask
         let bestPenalty = Infinity;
         let bestMask = 2;
         for (let mask = 0; mask <= 7; mask++) {
-            console.log('Applying mask ' + mask);
+            //console.log('Applying mask ' + mask);
             applyMask(mask);
 
             const penalty1 = evaluatePenalty1();
@@ -3874,7 +3874,7 @@ async function drawQRCode(qr, drawQR = buffer => {}, awaitSteps = true, { onMask
             const penalty3 = evaluatePenalty3();
             const penalty4 = evaluatePenalty4();
             const penalty = penalty1 + penalty2 + penalty3 + penalty4;
-            console.log('Penalty: ' + penalty + ' (' + penalty1 + ' + ' + penalty2 + ' + ' + penalty3 + ' + ' + penalty4 + ')');
+            //console.log('Penalty: ' + penalty + ' (' + penalty1 + ' + ' + penalty2 + ' + ' + penalty3 + ' + ' + penalty4 + ')');
             if (penalty < bestPenalty) {
                 bestMask = mask;
                 bestPenalty = penalty;
