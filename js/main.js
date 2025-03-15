@@ -1,6 +1,7 @@
 'use strict';
 
 import * as Vue from 'https://cdnjs.cloudflare.com/ajax/libs/vue/3.0.5/vue.esm-browser.prod.js';
+import { capacities, detectMode, drawQRCode, minVersion, preEncodeData, qrCode } from './qr.js';
 
 /** @type {HTMLCanvasElement} */
 let canvas;
@@ -21,6 +22,8 @@ const app = Vue.createApp({
         zoom: 1,
         stepByStep: false,
         forceUTF8: true,
+        inputTransformed: '',
+        highlight: -1,
 
         generating: false,
 
@@ -31,7 +34,7 @@ const app = Vue.createApp({
 
             set theme(val) {
                 localStorage.setItem('theme', val);
-                document.querySelector('html').setAttribute('theme', val);
+                document.querySelector('html')?.setAttribute('theme', val);
             },
         }
     }),
@@ -58,13 +61,13 @@ const app = Vue.createApp({
     computed: {
         getMode() {
             const mode = this.getDataMode();
-            return mode === 'alphanumeric' ? 'Letras + Números' : mode === 'numeric' ? 'Números' : mode === 'byte' ? 'Binário (ISO-8859-1)' : mode === 'utf8' ? 'Binário (UTF-8)' : 'Kanji';
+            return mode === 'alphanumeric' ? 'Letras + Números' : mode === 'numeric' ? 'Números' : mode === 'byte' ? 'Binário (ISO-8859-1)' : mode === 'utf-8' ? 'Binário (UTF-8)' : 'Kanji';
         },
 
         getVersion() {
             const mode = this.getDataMode();
-            const version = minVersion(mode === 'utf8' ? preEncodeData(this.data, 'utf8').length : this.data.length, mode, this.ecc);
-            if (version <= 0) {
+            const version = minVersion(mode === 'utf-8' ? preEncodeData(this.data, 'utf-8').length : this.data.length, mode, this.ecc);
+            if (!version) {
                 return 'Dados inválidos.';
             }
 
@@ -77,7 +80,7 @@ const app = Vue.createApp({
     },
 
     methods: {
-        openModal({type, title, body, primaryButton, closeButton = 'Fechar', onClose = () => { }, onCancel = () => { }, beforeOpen = () => { }}) {
+        openModal({ type, title, body, primaryButton, closeButton = 'Fechar', onClose = () => { }, onCancel = () => { }, beforeOpen = () => { } }) {
             let interval;
 
             const open = () => {
@@ -95,19 +98,32 @@ const app = Vue.createApp({
 
                 beforeOpen();
 
-                const modal = new bootstrap.Modal('#modal', {keyboard: true});
+                const modal = new bootstrap.Modal('#modal', { keyboard: true });
                 modal.show();
             };
 
             interval = setInterval(() => !this.modal && open(), 100);
         },
 
+        /**
+         *
+         * @param {string} body
+         * @param {string} title
+         * @param {() => void} onClose
+         */
         alert(body, title = 'Alerta', onClose = () => { }) {
-            this.openModal({type: 'alert', title, body, primaryButton: 'OK', onClose});
+            this.openModal({ type: 'alert', title, body, primaryButton: 'OK', onClose });
         },
 
+        /**
+         *
+         * @param {string} body
+         * @param {string} title
+         * @param {() => void} onClose
+         * @param {() => void} onCancel
+         */
         confirm(body, title = 'Confirmação', onClose = () => { }, onCancel = () => { }) {
-            this.openModal({type: 'confirm', title, body, primaryButton: 'Sim', closeButton: 'Não', onClose, onCancel});
+            this.openModal({ type: 'confirm', title, body, primaryButton: 'Sim', closeButton: 'Não', onClose, onCancel });
         },
 
         async generateQRCode() {
@@ -117,9 +133,9 @@ const app = Vue.createApp({
 
             try {
                 this.maskPenalties = [];
-                this.qr = qrCode(this.data, this.ecc, { forceUTF8: this.forceUTF8 });
+                this.qr = await qrCode(this.data, this.ecc, this.stepByStep, { forceUTF8: this.forceUTF8, onEncode: (data) => { this.inputTransformed = data; } });
                 this.scaleCanvas();
-                this.qrCanvas = await drawQRCode(this.qr, this.drawQR, this.stepByStep, { onMask: (mask, penalty) => { this.mask = mask; this.maskPenalties[mask] = penalty }, onWriteData: (i, j) => { ctx.fillStyle = 'red'; ctx.fillRect(i, j, 1, 1); } });
+                this.qrCanvas = await drawQRCode(this.qr, this.drawQR, this.stepByStep, { onMask: (mask, penalty) => { this.highlight = -1; this.mask = mask; this.maskPenalties[mask] = penalty; }, onWriteData: (i, x, y) => { ctx.fillStyle = 'red'; ctx.fillRect(x, y, 1, 1); this.highlight = i; } });
                 this.drawQR(this.qrCanvas.buffer);
                 this.mask = this.qrCanvas.mask;
                 this.generating = false;
@@ -132,6 +148,11 @@ const app = Vue.createApp({
             }
         },
 
+        /**
+         *
+         * @param {number} cssScale
+         * @return {void}
+         */
         scaleCanvas(cssScale = -1) {
             const factor = 1;
 
@@ -148,6 +169,11 @@ const app = Vue.createApp({
             canvas_container.style.setProperty('--size', '' + size * factor);
         },
 
+        /**
+         *
+         * @param {number} mask
+         * @return {Promise<void>}
+         */
         async applyMask(mask) {
             if (this.qrCanvas === null) {
                 return;
@@ -162,7 +188,7 @@ const app = Vue.createApp({
 
         /**
          *
-         * @param {number[][]} buffer
+         * @param {boolean[][]} buffer
          */
         drawQR(buffer) {
             const size = ((this.qr.version - 1) * 4) + 21;
@@ -193,13 +219,13 @@ const app = Vue.createApp({
 
         getDataSize() {
             const mode = this.getDataMode();
-            const length = mode === 'utf8' ? preEncodeData(this.data, 'utf8').length : this.data.length;
+            const length = mode === 'utf-8' ? preEncodeData(this.data, 'utf-8').length : this.data.length;
             return length;
         },
 
         getMaxLength() {
             const mode = this.getDataMode();
-            const max = capacities[40][this.ecc][mode === 'utf8' ? 'byte' : mode];
+            const max = capacities[40][this.ecc][mode === 'utf-8' ? 'byte' : mode];
             return max;
         },
 
@@ -210,6 +236,11 @@ const app = Vue.createApp({
             });
         },
 
+        /**
+         *
+         * @param {string} query
+         * @return {boolean}
+         */
         matchMedia(query) {
             return matchMedia(query).matches;
         },
@@ -218,28 +249,9 @@ const app = Vue.createApp({
     twoWay: true,
     beforeMount(el, binding, vnode) {
         function handler(e) {
-            el.dispatchEvent(new Event('change', {target: e.target}));
+            el.dispatchEvent(new Event('change', { target: e.target }));
         }
 
         jQuery(el).select2().on('select2:select', handler).on('select2:unselect', handler);
     },
 }).mount('#app');
-
-AOS.init({
-    disable: false,
-    startEvent: 'DOMContentLoaded',
-    initClassName: 'aos-init',
-    animatedClassName: 'aos-animate',
-    useClassNames: false,
-    disableMutationObserver: false,
-    debounceDelay: 50,
-    throttleDelay: 99,
-
-    offset: 120,
-    delay: 0,
-    duration: 400,
-    easing: 'ease',
-    once: false,
-    mirror: true,
-    anchorPlacement: 'top-bottom',
-});

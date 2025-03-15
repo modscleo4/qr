@@ -311,9 +311,7 @@ header .sidebar-button button:hover {
     width: 100%;
 }
 
-#input .input-data {
-
-}
+#input .input-data {}
 
 #input .row-buttons {
     display: flex;
@@ -336,6 +334,17 @@ header .sidebar-button button:hover {
     gap: 8px;
     align-items: center;
     flex-wrap: wrap;
+}
+
+.transformer p {
+    text-align: center;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    font-family: monospace;
+}
+
+.transformer p span.highlight {
+    color: red;
 }
 
 .result {
@@ -376,7 +385,7 @@ header .sidebar-button button:hover {
 }
 
 .mask .penalty {
-    
+    font-family: 'Courier New', Courier, monospace;
 }
 
 @media (max-width: 700px) {

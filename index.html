@@ -2,8 +2,7 @@
 <html theme="light" lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-            content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
 
     <meta name="description" content="QR Code Generator step by step." />
@@ -75,7 +74,8 @@
                         <div class="options">
                             <button type="submit" class="btn btn-primary" :disabled="!data || getDataSize() > getMaxLength() || generating">Gerar QR Code</button>
 
-                            <div class="dropdown" style="display: inline;">
+                            <div class="dropdown" style="display: inline;"data-bs-toggle="tooltip"
+                                        data-bs-placement="top" title="Define o espaço reservado para correção de erros. Um valor mais alto facilita a leitura, porém comportando menos dados.">
                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownECC"
                                         data-bs-toggle="dropdown" aria-expanded="false">ECC: {{ ecc }}</button>
                                 <ul class="dropdown-menu" aria-labelledby="dropdownECC">
@@ -109,6 +109,12 @@
                         </div>
                     </div>
                 </form>
+            </div>
+
+            <div class="transformer" :style="{'display': stepByStep ? '' : 'none'}">
+                <p>
+                    <span v-for="(char, i) in inputTransformed" :class="{'highlight': i === highlight}">{{ char }}</span>
+                </p>
             </div>
 
             <div class="result" :style="{visibility: !qr ? 'hidden' : 'unset'}">
@@ -167,6 +173,5 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
 
     <script type="module" src="js/main.js"></script>
-    <script src="js/qr.js"></script>
 </body>
 </html>
