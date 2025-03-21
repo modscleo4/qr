@@ -14,7 +14,7 @@ async function sleep(ms) {
 
 /** @typedef {'L'|'M'|'Q'|'H'} ECC */
 
-/** @typedef {'numeric'|'alphanumeric'|'byte'|'kanji'} Mode */
+/** @typedef {'numeric'|'alphanumeric'|'byte'|'kanji'|'eci'} Mode */
 
 /**
  * @typedef {object} QR
@@ -1116,7 +1116,7 @@ export const capacities = {
  * @return {Version|null}
  */
 export function minVersion(length, mode, ecc) {
-    if (mode === 'utf-8') {
+    if (mode === 'utf-8' || mode === 'eci') {
         mode = 'byte';
     }
 
@@ -1133,7 +1133,7 @@ export function minVersion(length, mode, ecc) {
 /**
  *
  * @param {string} data
- * @param {boolean} forceUTF8
+ * @param {boolean} [forceUTF8=false]
  * @return {Mode|'utf-8'}
  */
 export function detectMode(data, forceUTF8 = false) {
@@ -1145,6 +1145,8 @@ export function detectMode(data, forceUTF8 = false) {
         return 'byte';
     } else if ([...data].every(c => utf8_to_shiftjis.hasOwnProperty(c))) { // Shift-JIS
         return 'kanji';
+    } else if (!forceUTF8) {
+        return 'eci';
     } else {
         return 'utf-8';
     }
@@ -2654,6 +2656,14 @@ export function preEncodeData(data, mode) {
                 ) || [];
         }
 
+        case 'eci':
+            const textEncoder = new TextEncoder();
+            return [...textEncoder.encode(data)]
+                .map(c =>
+                    c.toString(2)
+                        .padStart(8, '0')
+                );
+
         case 'utf-8': {
             const textEncoder = new TextEncoder();
             return [...textEncoder.encode(data.normalize('NFD'))]
@@ -3036,12 +3046,16 @@ function generateVersionString(version) {
  * @return {number|null}
  */
 function generateEncodingSize(version, mode) {
+    if (mode === 'utf-8' || mode === 'eci') {
+        mode = 'byte';
+    }
+
     if (version >= 1 && version <= 9) {
         if (mode === 'numeric') {
             return 10;
         } else if (mode === 'alphanumeric') {
             return 9;
-        } else if (mode === 'byte' || mode === 'utf-8') {
+        } else if (mode === 'byte') {
             return 8;
         } else if (mode === 'kanji') {
             return 8;
@@ -3051,7 +3065,7 @@ function generateEncodingSize(version, mode) {
             return 12;
         } else if (mode === 'alphanumeric') {
             return 11;
-        } else if (mode === 'byte' || mode === 'utf-8') {
+        } else if (mode === 'byte') {
             return 16;
         } else if (mode === 'kanji') {
             return 10;
@@ -3061,7 +3075,7 @@ function generateEncodingSize(version, mode) {
             return 14;
         } else if (mode === 'alphanumeric') {
             return 13;
-        } else if (mode === 'byte' || mode === 'utf-8') {
+        } else if (mode === 'byte') {
             return 16;
         } else if (mode === 'kanji') {
             return 12;
@@ -3092,6 +3106,44 @@ function generateModeIndicator(mode) {
     return null;
 }
 
+const ECIEncodings = {
+    'ISO-8859-1': 3,
+    'ISO-8859-2': 4,
+    'ISO-8859-3': 5,
+    'ISO-8859-4': 6,
+    'ISO-8859-5': 7,
+    'ISO-8859-6': 8,
+    'ISO-8859-7': 9,
+    'ISO-8859-8': 10,
+    'ISO-8859-9': 11,
+    'ISO-8859-10': 12,
+    'ISO-8859-11': 13,
+    'ISO-8859-13': 15,
+    'ISO-8859-14': 16,
+    'ISO-8859-15': 17,
+    'ISO-8859-16': 18,
+    'Shift_JIS': 20,
+    'UTF-8': 26,
+    'US-ASCII': 27,
+    'Big5': 28,
+    'GB18030': 29,
+    'EUC-KR': 30
+};
+
+/**
+ *
+ * @param {Mode|'utf-8'} mode
+ * @param {keyof typeof ECIEncodings} [encoding='UTF-8']
+ * @return {string}
+ */
+function generateECIHeader(mode, encoding = 'UTF-8') {
+    if (mode !== 'eci') {
+        return ''
+    }
+
+    return generateModeIndicator('eci') + ECIEncodings[encoding].toString(2).padStart(8, '0');
+}
+
 /**
  *
  * @param {string} data
@@ -3117,11 +3169,11 @@ export async function qrCode(data, ecc, stepByStep = false, { forceUTF8 = false,
         await sleep(500);
     }
 
-    const dataSize = mode === 'utf-8' ? preEncodedData.length / 8 : data.length;
+    const dataSize = mode === 'utf-8' || mode === 'eci' ? preEncodedData.length / 8 : data.length;
 
     if (version === null) {
         version = minVersion(dataSize, mode, ecc);
-    } else if (version > 40 || capacities[version][ecc][mode === 'utf-8' ? 'byte' : mode] < dataSize) {
+    } else if (version > 40 || capacities[version][ecc][mode === 'utf-8' || mode === 'eci' ? 'byte' : mode] < dataSize) {
         throw new RangeError('Invalid version');
     }
 
@@ -3129,16 +3181,16 @@ export async function qrCode(data, ecc, stepByStep = false, { forceUTF8 = false,
         throw new RangeError('Invalid Version');
     }
 
+    const eciHeader = generateECIHeader(mode);
     const encodingSize = generateEncodingSize(version, mode);
-    const modeIndicator = generateModeIndicator(mode);
-
+    const modeIndicator = generateModeIndicator(mode === 'eci' ? 'byte' : mode);
     if (encodingSize === null || modeIndicator == null) {
         throw new TypeError('Invalid Encoding Mode');
     }
 
     const size = dataSize.toString(2).padStart(encodingSize, '0');
 
-    preEncodedData = modeIndicator + size + preEncodedData;
+    preEncodedData = eciHeader + modeIndicator + size + preEncodedData;
     const requiredSize = 8 * totalDataCodeworks(ecc, version);
 
     if (stepByStep) {

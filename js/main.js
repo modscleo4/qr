@@ -21,7 +21,7 @@ const app = Vue.createApp({
         maskPenalties: [],
         zoom: 1,
         stepByStep: false,
-        forceUTF8: true,
+        forceUTF8: false,
         inputTransformed: '',
         highlight: -1,
 
@@ -61,12 +61,12 @@ const app = Vue.createApp({
     computed: {
         getMode() {
             const mode = this.getDataMode();
-            return mode === 'alphanumeric' ? 'Letras + Números' : mode === 'numeric' ? 'Números' : mode === 'byte' ? 'Binário (ISO-8859-1)' : mode === 'utf-8' ? 'Binário (UTF-8)' : 'Kanji';
+            return mode === 'alphanumeric' ? 'Letras + Números' : mode === 'numeric' ? 'Números' : mode === 'byte' ? 'Binário (ISO-8859-1)' : mode === 'utf-8' ? 'Binário (UTF-8)' : mode === 'eci' ? 'ECI (UTF-8)' : 'Kanji';
         },
 
         getVersion() {
             const mode = this.getDataMode();
-            const version = minVersion(mode === 'utf-8' ? preEncodeData(this.data, 'utf-8').length : this.data.length, mode, this.ecc);
+            const version = minVersion(mode === 'utf-8' || mode === 'eci' ? preEncodeData(this.data, mode).length : this.data.length, mode, this.ecc);
             if (!version) {
                 return 'Dados inválidos.';
             }
@@ -219,13 +219,21 @@ const app = Vue.createApp({
 
         getDataSize() {
             const mode = this.getDataMode();
-            const length = mode === 'utf-8' ? preEncodeData(this.data, 'utf-8').length : this.data.length;
+            const length = mode === 'utf-8' || mode === 'eci' ? preEncodeData(this.data, mode).length : this.data.length;
+            if (mode === 'eci') {
+                return length; // ECI header
+            }
+
             return length;
         },
 
         getMaxLength() {
             const mode = this.getDataMode();
-            const max = capacities[40][this.ecc][mode === 'utf-8' ? 'byte' : mode];
+            const max = capacities[40][this.ecc][mode === 'utf-8' || mode == 'eci' ? 'byte' : mode];
+            if (mode === 'eci') {
+                return max - 3; // ECI header
+            }
+
             return max;
         },
 
