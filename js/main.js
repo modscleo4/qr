@@ -135,7 +135,7 @@ const app = Vue.createApp({
                 this.maskPenalties = [];
                 this.qr = await qrCode(this.data, this.ecc, this.stepByStep, { forceUTF8: this.forceUTF8, onEncode: (data) => { this.inputTransformed = data; } });
                 this.scaleCanvas();
-                this.qrCanvas = await drawQRCode(this.qr, this.drawQR, this.stepByStep, { onMask: (mask, penalty) => { this.highlight = -1; this.mask = mask; this.maskPenalties[mask] = penalty; }, onWriteData: (i, x, y) => { ctx.fillStyle = 'red'; ctx.fillRect(x, y, 1, 1); this.highlight = i; } });
+                this.qrCanvas = await drawQRCode(this.qr, this.drawQR, this.stepByStep, { onMask: (mask, penalty) => { this.highlight = -1; this.mask = mask; this.maskPenalties[mask] = penalty; }, onWriteData: (i, x, y) => { ctx.fillStyle = 'red'; ctx.fillRect(x, y, 1, 1); this.highlight = i; this.updateScroll(); } });
                 this.drawQR(this.qrCanvas.buffer);
                 this.mask = this.qrCanvas.mask;
                 this.generating = false;
@@ -242,6 +242,16 @@ const app = Vue.createApp({
             [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]:not([data-bs-original-title])')).forEach(el => {
                 new bootstrap.Tooltip(el);
             });
+        },
+
+        updateScroll() {
+            /** @type {HTMLElement | null} */
+            const highlighted = document.querySelector('.transformer p span.highlight');
+            if (!highlighted) {
+                return;
+            }
+
+            document.querySelector('.transformer p')?.scrollTo({ top: highlighted.offsetTop, behavior: 'smooth' });
         },
 
         /**

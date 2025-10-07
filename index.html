@@ -64,7 +64,6 @@
             <div id="input">
                 <form action="#" @submit.prevent="generateQRCode()">
                     <div class="input-data" class="mb-2">
-                        <label for="data" class="mb-1">Texto</label>
                         <textarea style="resize: none" class="form-control" id="data" rows="5" v-model="data"
                                     placeholder="0123456789 ABCDEFGHIJKLMNOPQRSTUVWXYZ áéíóú 漢字 한글"
                                     :maxlength="getMaxLength()"></textarea>
@@ -136,18 +135,19 @@
                 </div>
 
                 <div class="qr">
+                    <div class="qr-container">
+                        <canvas id="qr" width="83" height="83"></canvas>
+                    </div>
+
                     <div class="list-group list-group-horizontal">
-                        <span class="list-group-item" :class="[generating ? 'list-group-item-secondary' : 'list-group-item-primary']">Zoom</span>
+                        <span class="list-group-item"
+                              :class="[generating ? 'list-group-item-secondary' : 'list-group-item-primary']">Zoom</span>
                         <!-- <button v-for="i of [1, 2, 3, 4, 5, 6, 7, 8, 16]" type="button" class="list-group-item list-group-item-action" :class="[zoom === i ? 'active' : '']" :disabled="generating" @click="scaleCanvas(i)">{{ i }}x</button> -->
                         <select class="list-group-item" id="" v-model="zoom" :disabled="generating" @change="scaleCanvas(zoom)">
                             <option value="-1">Preencher</option>
                             <option v-for="i of [1, 2, 3, 4, 5, 6, 7, 8, 16]" :value="i">{{ i }}x</option>
                         </select>
                         <!-- <button type="button" class="list-group-item list-group-item-action" :class="[zoom === -1 ? 'active' : '']" :disabled="generating" @click="scaleCanvas()">Preencher</button> -->
-                    </div>
-
-                    <div class="qr-container">
-                        <canvas id="qr" width="83" height="83"></canvas>
                     </div>
                 </div>
 

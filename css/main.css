@@ -341,6 +341,10 @@ header .sidebar-button button:hover {
     max-width: 100%;
     overflow-wrap: anywhere;
     font-family: monospace;
+    max-height: 3em;
+    overflow: hidden;
+    margin: 0;
+    position: relative;
 }
 
 .transformer p span.highlight {
@@ -365,7 +369,7 @@ header .sidebar-button button:hover {
 .qr-container {
     --scale: 1;
     --size: 21;
-    border: 1px solid #000000;
+    border: 1px solid #ced4da;
     background-color: #ffffff;
     box-sizing: content-box;
     padding: calc(var(--scale) * 4px);
